@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -7,12 +10,18 @@ android {
     namespace = "com.stiffrock.steamwidgets"
     compileSdk = 35
 
+    val localPropsFile = rootProject.file("local.properties")
+    val properties = Properties()
+    properties.load(FileInputStream(localPropsFile))
+
     defaultConfig {
         applicationId = "com.stiffrock.steamwidgets"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
+
+        buildConfigField("String", "steamApi", properties.getProperty("steam.api.key"))
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -35,6 +44,7 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 }
 

@@ -23,7 +23,7 @@
 
             <meta-data
                     android:name="android.appwidget.provider"
-                    android:resource="@xml/waka_time_languages_stats_info" />
+                    android:resource="@xml/steam_games_stats_info" />
         </receiver>
 
         <activity

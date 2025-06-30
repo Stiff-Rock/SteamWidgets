@@ -1,4 +1,4 @@
-package com.stiffrock.wakatimewidgets
+package com.stiffrock.steamwidgets
 
 import org.junit.Test
 

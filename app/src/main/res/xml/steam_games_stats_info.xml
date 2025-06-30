@@ -4,11 +4,11 @@
         android:minHeight="110dp"
         android:updatePeriodMillis="43200000"
         android:previewImage="@drawable/example_appwidget_preview"
-        android:initialLayout="@layout/waka_time_languages_stats"
+        android:initialLayout="@layout/steam_games_stats"
         android:description="@string/lang_widget_desc"
         android:resizeMode="horizontal|vertical"
         android:widgetCategory="home_screen"
-        android:previewLayout="@layout/waka_time_languages_stats"
+        android:previewLayout="@layout/steam_games_stats"
         android:targetCellHeight="2"
         android:targetCellWidth="2"
-        android:initialKeyguardLayout="@layout/waka_time_languages_stats" />
+        android:initialKeyguardLayout="@layout/steam_games_stats" />

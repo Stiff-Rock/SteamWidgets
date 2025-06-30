@@ -1,8 +1,9 @@
-package com.stiffrock.wakatimewidgets.ui
+package com.stiffrock.steamwidgets.ui
 
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -12,18 +13,19 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
-import com.stiffrock.wakatimewidgets.R
-import com.stiffrock.wakatimewidgets.data.SteamApi
+import com.stiffrock.steamwidgets.R
+import com.stiffrock.steamwidgets.data.SteamApi
+import com.stiffrock.steamwidgets.utils.TAG
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     companion object {
         const val PREFS_FILENAME = "user_prefs"
-        const val STEAM_ID_PREF = "steam_id"
+        const val STEAM_USER_ID_PREF = "steam_id"
     }
 
     private lateinit var currentUserTextView: TextView
-    private lateinit var wakaTimeApiKeyInput: EditText
+    private lateinit var steamUserIdInput: EditText
     private lateinit var saveBtn: Button
 
     //TODO: MAYBE DO OAuth 2.0
@@ -35,31 +37,29 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         currentUserTextView = findViewById(R.id.currentUser)
-        wakaTimeApiKeyInput = findViewById(R.id.wakaTimeApiKeyInput)
+        steamUserIdInput = findViewById(R.id.steamUserIdInput)
         saveBtn = findViewById(R.id.saveBtn)
 
         sharedPreferences =
             this.getSharedPreferences(PREFS_FILENAME, Context.MODE_PRIVATE)
 
-        val savedApiKey = sharedPreferences.getString(STEAM_ID_PREF, null)
+        val steamUserId = sharedPreferences.getString(STEAM_USER_ID_PREF, null)
 
-        if (savedApiKey != null) {
-            fetchUserData(savedApiKey, false)
-            wakaTimeApiKeyInput.setText(savedApiKey)
+        if (steamUserId != null) {
+            fetchUsername(steamUserId, false)
+            steamUserIdInput.setText(steamUserId)
         }
 
         saveBtn.setOnClickListener {
-            val apiKey = wakaTimeApiKeyInput.text.toString().trim()
+            val apiKey = steamUserIdInput.text.toString().trim()
 
             if (apiKey.isEmpty()) {
-                Toast.makeText(this, "Please provide your WakaTime API key", Toast.LENGTH_SHORT)
+                Toast.makeText(this, "Please provide your Steam id", Toast.LENGTH_SHORT)
                     .show()
                 return@setOnClickListener
             }
 
-            val formattedKey = SteamApi.formatApiKey(apiKey)
-
-            fetchUserData(formattedKey, true)
+            fetchUsername(apiKey, true)
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
@@ -69,23 +69,24 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun fetchUserData(apiKey: String, save: Boolean) {
+    private fun fetchUsername(steamUserId: String, save: Boolean) {
         lifecycleScope.launch {
             try {
-                val response = SteamApi.service.getCurrentUser(apiKey)
+                val response = SteamApi.service.getPlayerSummaries(steamIds = steamUserId)
 
                 if (!response.isSuccessful) {
                     Toast.makeText(
                         this@MainActivity, "API Error: ${response.code()}", Toast.LENGTH_SHORT
                     ).show()
+                    Log.e(TAG, "API Error: ${response.code()}")
                     return@launch
                 }
 
                 val body = response.body()
-                val username = body?.data?.username
+                val username = body?.response?.players?.first()?.personaname
                 if (save) {
                     sharedPreferences.edit().apply {
-                        putString(STEAM_ID_PREF, apiKey)
+                        putString(STEAM_USER_ID_PREF, steamUserId)
                         apply()
                     }
                 }
@@ -94,18 +95,20 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(
                         this@MainActivity, "Failed to get username", Toast.LENGTH_SHORT
                     ).show()
+                    Log.e(TAG, "Failed to get username")
                     return@launch
                 }
 
                 currentUserTextView.text = username
                 Toast.makeText(
                     this@MainActivity,
-                    "Successfully saved API key",
+                    "Successfully saved steam id",
                     Toast.LENGTH_SHORT
                 ).show()
 
             } catch (e: Exception) {
                 Toast.makeText(this@MainActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                Log.e(TAG, "Error: ${e.message}")
             }
         }
     }
